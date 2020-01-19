@@ -14,17 +14,80 @@ library(tidyverse)
 setwd('C:/Users/grant/OneDrive/Documents/GitHub/HackDavis20')
 tupper<-read_csv('tupper_usage_1-18-2020.csv')
 head(tupper)
+tupper<-tupper %>%
+  mutate(`Date Time`=
+           substr(`Date Time`,1,
+                  regexpr(",",`Date Time`)-1))
+
+tupper$`Date Time`<-as.Date(tupper$`Date Time`,'%m/%d/%Y')
+as.Date(tupper$`Date Time`,format)
+
+tupper<-tupper %>%
+  arrange(`Date Time`)
+tupper$`Date Time`
+
+tupper
+
+ts_zoo<-xts(tupper,tupper$`Date Time`)
 ```
+
 ```{r}
 setwd('C:/Users/grant/OneDrive/Documents/GitHub/HackDavis20')
 ceed.cost<-read_csv('campus_1-18-2020.csv')
-ceed.cost$`Fiscal Year`
-plot(ts(ceed.cost$`Electricity Cost`))
+
+ceed.cost;plot(ts(start=ceed.cost$`Fiscal Year`[1],ceed.cost$`Total Cost ($)`))
+cc.ts<-ts(ceed.cost,start = c(1993,1),end = c(2017,24))
+rm(cc.ts)
+ceed.cost<-ceed.cost %>%
+  mutate(FY= c(
+    1993:2016
+  ))
+names(ceed.cost)
+  
+ceed.cost<-ceed.cost %>%
+  select(FY,'Heating Plant Gas':'Total Cost ($)')
+
 ceed.cost
 ```
+
+
+```{r}
+ceed.cost[,-1]
+cc.ts<-ts(ceed.cost[,-1],start=c(1993))
+plot(cc.ts)
+cc.ts
 ```
 
 ```{r}
+#### Stratifications
 
+bldg<-read_csv('BuildingData.csv')
+names(bldg)
+bldg
+bldg %>%
+  select(Building,`Annual Cost`,`Maintained Gross Sq. Ft.`,`Primary Usage (Type)`) %>%
+  group_by(bldg$`Primary Usage (Type)`) %>%
+  summarise(n())
+
+bldg.ltd<-bldg %>%
+  select(Building,`Annual Cost`,`Maintained Gross Sq. Ft.`,`Primary Usage (Type)`) 
+
+bldg.ltd
+
+unique(bldg.ltd$`Primary Usage (Type)`)
+#Lab
+bldg.labR<-bldg %>%
+    filter(bldg.ltd$`Primary Usage (Type)`=="LAB - Lab / Research")
+bldg.labR
+#Rec
+bldg.rec<-bldg %>%
+    filter(bldg.ltd$`Primary Usage (Type)`=="REC - Athletics & Recreation")
+bldg.rec
+#Class
+bldg.class<-bldg %>%
+    filter(bldg.ltd$`Primary Usage (Type)`=="CLS - Classroom")
+bldg.class
+#General Academic / Admin
 ```
+
 
