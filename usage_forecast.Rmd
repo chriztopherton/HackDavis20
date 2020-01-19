@@ -1,0 +1,174 @@
+---
+title: "AGGIE FORECASTING"
+author: Last updated, `r format(Sys.Date(), "%B %d, %Y")`
+
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    theme: readable
+    social: menu
+    source_code: embed
+runtime: shiny
+---
+
+```{r,inlcude=FALSE,warning=FALSE,message=FALSE, warning=FALSE, r,inlcude=FALSE}
+knitr::opts_chunk$set(echo = T)
+knitr::opts_chunk$set(message = F)
+knitr::opts_chunk$set(warning = F)
+library(ggplot2)
+library(tidyverse)
+library(plotly)
+#install.packages('devtools')
+#devtools::install_github("michaeldorman/mapsapi")
+#devtools::install_github("dkahle/ggmap")
+library(mapsapi)
+library(ggmap)
+library(maps)
+library(mapproj)
+library(leaflet)
+library(shiny)
+library(rsconnect)
+library(dplyr)
+library(astsa)
+library(tseries)
+library(zoo)
+require(graphics)
+library(forecast)
+library(lubridate)
+library(TSstudio)
+library(shinydashboard)
+```
+
+
+
+
+Sidebar {.sidebar data-width=400}
+======================================================================
+
+```{r, echo=FALSE}
+
+    # getwd() = "/Users/christopherton/Documents/HackDavis20"
+    fileInput("file", "Choose a CSV File",  multiple = TRUE, accept = c("text/csv",
+                               "text/comma-separated-values,text/plain", ".csv"))
+      
+    helpText("Upload a .csv of usage results for one building. Your file should have a column named   \"Date       Time\", \"Chilled Water\", and \"Electricity Steam\".")
+      
+    #Input: Select number of rows to display ----
+    radioButtons("disp", "Display",
+                  choices = c(Head = "head",
+                                 All = "all"),
+                  selected = "head")
+    
+    #actionButton("recalc", "GO")
+    p()
+    
+
+```
+
+```{r,echo=FALSE}
+renderTable({
+  
+  req(input$file)
+  usage <- read.csv(input$file$datapath)
+  
+  if(input$disp == "head"){
+    return(head(usage))
+  }else{
+    return(usage)
+  }
+})
+```
+
+General Overview
+============================================================================
+
+```{r}
+
+```
+
+
+
+Analysis
+============================================================================
+
+Row {data-height=700}
+-----------------------------------------------------------------------
+
+### Time Series Plot
+
+```{r, echo=FALSE}
+
+renderPlotly({
+    
+      req(input$file)
+  
+      #usage <- read_csv("tupper_usage_1-18-2020.csv")
+      usage <- read_csv(input$file$datapath)
+      
+      usage$`Date Time`<-as.Date(usage$`Date Time`,'%m/%d/%Y')
+      invisible(as.Date(usage$`Date Time`,format))
+      
+      usage <- usage[c(1:36),]
+      #usage$Electricity[13] = 2309361
+      usage$total <-  usage$`Chilled Water` + usage$Electricity + usage$Steam
+      #usage_copy <- usage
+      usage <- usage[,-c(2,3,4)]
+      names(usage) <- c('Date','Total_Usage')
+      usage$Date <- rev(usage$Date)
+      
+      ################################################################################################
+      ggplotly(
+        ggplot(usage,aes(x=usage$Date,y=usage$Total_Usage)) +
+          geom_point() +
+          geom_line()+
+          labs(x = "Date",
+            y = "Total Usage (kbut)",
+            title = "Montly Usage Data")
+      )%>% 
+              rangeslider(start = min(as.numeric(usage$Date)), 
+                          end = max(as.numeric(usage$Date)))
+})
+    
+```
+
+### 
+
+```{r,echo=FALSE}
+
+renderPlot({
+    
+      req(input$file)
+  
+      usage <- read_csv(input$file$datapath)
+      
+      usage$`Date Time`<-as.Date(usage$`Date Time`,'%m/%d/%Y')
+      invisible(as.Date(usage$`Date Time`,format))
+      
+      usage <- usage[c(1:36),]
+      #usage$Electricity[13] = 2309361
+      usage$total <-  usage$`Chilled Water` + usage$Electricity + usage$Steam
+      #usage_copy <- usage
+      usage <- usage[,-c(2,3,4)]
+      names(usage) <- c('Date','Total_Usage')
+      usage$Date <- rev(usage$Date)
+      
+      #assuming seasonality exists regardless of building, applying differencing of lag 12
+      auto = invisible(auto.arima(usage$Total_Usage,trace=TRUE))
+      order = c(auto$arma[1],auto$arma[2],auto$arma[3])
+      
+      arimafit <- Arima(usage$Total_Usage,order=order)
+      plot(forecast(arimafit,h=5))
+      
+})
+
+
+```
+
+
+
+
+
+
+
+
