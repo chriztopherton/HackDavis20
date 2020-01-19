@@ -83,8 +83,212 @@ General Overview
 Row {data-height=700}
 -----------------------------------------------------------------------
 
-```{r}
 
+```{r, echo = FALSE}
+
+p = renderPlotly({
+  req(input$file)
+  df = input$file$datapath
+  
+  if (grepl('class', input$file$name) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+      
+        rangeslider = list(type = "date")),
+    
+      yaxis = list(title = "kBtu"))
+  }
+  
+  else if (grepl('comm', input$file$name) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    add_lines(y = ~Natural_gas, name = 'Natural Gas') %>%
+    add_lines(y = ~Solar, name = 'Solar') %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+      
+        rangeslider = list(type = "date")),
+    
+      yaxis = list(title = "kBtu"))
+  }
+  
+  else if (grepl('hous', input$file$name) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    add_lines(y = ~Solar, name = 'Solar') %>%
+    try(add_trace(y = ~Chilled_water, name = 'Chilled Water')) %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+      
+        rangeslider = list(type = "date")),
+    
+      yaxis = list(title = "kBtu"))
+  }
+  
+  else if (grepl('lab', input$file$name) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    add_lines(y = ~Natural_gas, name = 'Natural Gas') %>%
+    add_lines(y = ~Solar, name = 'Solar') %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+        
+        rangeslider = list(type = "date")),
+      
+      yaxis = list(title = "kBtu"))
+  }
+  
+  else # (grepl('office', input$file) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    add_lines(y = ~Natural_gas, name = 'Natural Gas') %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+      
+        rangeslider = list(type = "date")),
+    
+      yaxis = list(title = "kBtu"))
+  }
+})
+
+p
 ```
 
 
