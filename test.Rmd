@@ -1,0 +1,345 @@
+---
+title: "Geocoding from UC Davis Pavillion"
+author: Last updated, `r format(Sys.Date(), "%B %d, %Y")`
+
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    theme: readable
+    social: menu
+    source_code: embed
+runtime: shiny
+---
+
+```{r,inlcude=FALSE,warning=FALSE,message=FALSE, warning=FALSE, r,inlcude=FALSE}
+knitr::opts_chunk$set(echo = T)
+knitr::opts_chunk$set(message = F)
+knitr::opts_chunk$set(warning = F)
+library(ggplot2)
+library(tidyverse)
+library(plotly)
+#install.packages('devtools')
+#devtools::install_github("michaeldorman/mapsapi")
+#devtools::install_github("dkahle/ggmap")
+library(mapsapi)
+library(ggmap)
+library(maps)
+library(mapproj)
+library(leaflet)
+library(shiny)
+library(rsconnect)
+library(dplyr)
+library(astsa)
+library(tseries)
+library(zoo)
+require(graphics)
+library(forecast)
+library(lubridate)
+library(TSstudio)
+```
+
+
+
+Sidebar {.sidebar data-width=400}
+======================================================================
+
+```{r, echo=FALSE}
+    # getwd() = "/Users/christopherton/Documents/HackDavis20"
+    fileInput("file", "Choose a CSV File",  multiple = TRUE, accept = c("text/csv",
+                               "text/comma-separated-values,text/plain", ".csv"))
+      
+    helpText("Upload a .csv of usage results for one building. Your file should have a column named   \"Date       Time\", \"Chilled Water\", and \"Electricity Steam\".")
+      
+    #Input: Select number of rows to display ----
+    radioButtons("disp", "Display",
+                  choices = c(Head = "head",
+                                 All = "all"),
+                  selected = "head")
+    
+    actionButton("recalc", "GO")
+    p()
+    
+```
+
+```{r,echo=FALSE}
+renderTable({
+  
+  req(input$file)
+  usage <- read.csv(input$file$datapath)
+  
+  if(input$disp == "head"){
+    return(head(usage))
+  }else{
+    return(usage)
+  }
+})
+```
+
+
+General Overview
+============================================================================
+
+Row {data-height=700}
+-----------------------------------------------------------------------
+
+
+```{r, echo = FALSE}
+
+p = renderPlotly({
+  req(input$file)
+  df = input$file$datapath
+  
+  if (grepl('class', input$file$name) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+      
+        rangeslider = list(type = "date")),
+    
+      yaxis = list(title = "kBtu"))
+  }
+  
+  else if (grepl('comm', input$file$name) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    add_lines(y = ~Natural_gas, name = 'Natural Gas') %>%
+    add_lines(y = ~Solar, name = 'Solar') %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+      
+        rangeslider = list(type = "date")),
+    
+      yaxis = list(title = "kBtu"))
+  }
+  
+  else if (grepl('hous', input$file$name) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    add_lines(y = ~Solar, name = 'Solar') %>%
+    try(add_trace(y = ~Chilled_water, name = 'Chilled Water')) %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+      
+        rangeslider = list(type = "date")),
+    
+      yaxis = list(title = "kBtu"))
+  }
+  
+  else if (grepl('lab', input$file$name) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    add_lines(y = ~Natural_gas, name = 'Natural Gas') %>%
+    add_lines(y = ~Solar, name = 'Solar') %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+        
+        rangeslider = list(type = "date")),
+      
+      yaxis = list(title = "kBtu"))
+  }
+  
+  else # (grepl('office', input$file) == TRUE)
+  {
+    plot_ly(read.csv(df), x = ~Date) %>%
+    add_lines(y = ~Chilled_water, name = 'Chilled Water') %>%
+    add_lines(y = ~Electricity, name = 'Electricity') %>%
+    add_lines(y = ~Steam, name = 'Steam') %>%
+    add_lines(y = ~Natural_gas, name = 'Natural Gas') %>%
+    layout(
+      title = "Energy Usage",
+      xaxis = list(
+        rangeselector = list(
+          buttons = list(
+            list(
+              count = 3,
+              label = "3 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 6,
+              label = "6 mo",
+              step = "month",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "1 yr",
+              step = "year",
+              stepmode = "backward"),
+            list(
+              count = 1,
+              label = "YTD",
+              step = "year",
+              stepmode = "todate"),
+            list(step = "all"))),
+      
+        rangeslider = list(type = "date")),
+    
+      yaxis = list(title = "kBtu"))
+  }
+})
+
+p
+```
+
+
+
+
+Analysis
+============================================================================
+
+Row {data-height=700}
+-----------------------------------------------------------------------
+
+```{r,include=FALSE,message=FALSE, warning=FALSE}
+api_key = "AIzaSyAnaLkG1iw1J1cTlAR6ZGGhF1bS5C7968Q"
+register_google(key = api_key)
+```
+
+
+### Forecast Visualization
+
+```{r, echo=FALSE}
+renderPlotly({
+    
+      req(input$file)
+  
+      #usage <- read_csv("tupper_usage_1-18-2020.csv")
+      usage <- read_csv(input$file$datapath)
+      
+      usage$`Date Time`<-as.Date(usage$`Date Time`,'%m/%d/%Y')
+      invisible(as.Date(usage$`Date Time`,format))
+      
+      usage <- usage[c(1:36),]
+      #usage$Electricity[13] = 2309361
+      usage$total <-  usage$`Chilled Water` + usage$Electricity + usage$Steam
+      #usage_copy <- usage
+      usage <- usage[,-c(2,3,4)]
+      names(usage) <- c('Date','Total_Usage')
+      usage$Date <- rev(usage$Date)
+      
+      ################################################################################################
+      ggplotly(
+        ggplot(usage,aes(x=usage$Date,y=usage$Total_Usage)) +
+          geom_point() +
+          geom_line()+
+          labs(x = "Date",
+            y = "Total Usage (kbut)",
+            title = "Montly Usage Data")
+      )%>% 
+              rangeslider(start = min(as.numeric(usage$Date)), 
+                          end = max(as.numeric(usage$Date)))
+})
+    
+```
+
+

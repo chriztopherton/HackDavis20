@@ -75,12 +75,19 @@ bldg.ltd<-bldg %>%
 bldg.ltd
 
 unique(bldg.ltd$`Primary Usage (Type)`)
-
-bldg.labR<-bldg.ltd %>%
-  select(Building,'Annual Cost','Maintained Gross Sq. Ft.','Primary Usage (Type)') %>% 
-  filter(bldg.ltd$`Primary Usage (Type)`=="LAB - Lab / Research")
-
+#Lab
+bldg.labR<-bldg %>%
+    filter(bldg.ltd$`Primary Usage (Type)`=="LAB - Lab / Research")
 bldg.labR
+#Rec
+bldg.rec<-bldg %>%
+    filter(bldg.ltd$`Primary Usage (Type)`=="REC - Athletics & Recreation")
+bldg.rec
+#Class
+bldg.class<-bldg %>%
+    filter(bldg.ltd$`Primary Usage (Type)`=="CLS - Classroom")
+bldg.class
+#General Academic / Admin
 ```
 
 
